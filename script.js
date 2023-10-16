@@ -42,13 +42,12 @@ function shuffleArray(arr = []) {
 
     return result;
   }
-
   return getRandomIndexes(arr.length).map((index) => arr[index]);
 }
 
 async function getOpenTriviaDBQuestions(count = 10) {
   const resp = await fetch(
-    `https://opentdb.com/api.php?amount=${count}&category=9&difficulty=medium&type=multiple&encode=url3986`
+    `https://opentdb.com/api.php?amount=${count}&category=9&difficulty=easy&type=multiple&encode=url3986`
   );
   const { results } = await resp.json();
 
@@ -69,26 +68,22 @@ async function getOpenTriviaDBQuestions(count = 10) {
   });
 }
 
-function getLetterByIndex(index) {
-  return "ABCDE"[index];
-}
-
-function renderQuestion(question = new Question({})) {
+function renderQuestion(question) {
   selectedAnswerId = null;
 
   questionValue.textContent = question.label;
-  questionValue.setAttribute("data-question-index", questionIndex + 1);
+  questionValue.setAttribute("data-question-index", index + 1);
 
   const answersHtml = question.answers
-    .map((item, index) => {
+    .map((item, i) => {
+      const id = "ABCD"[i];
       return `
     <li class="answers-list-item">
       <label for="${item.id}" class="answer notranslate">
         <input type="radio" name="answer" id="${item.id}" value="${item.id}"/>
         <div
-          data-answer-id="${getLetterByIndex(index)}"
-          class="answer-content btn"
-          >
+          data-answer-id="${id}"
+          class="answer-content btn">
           ${item.label}
         </div>
       </label>
@@ -98,42 +93,21 @@ function renderQuestion(question = new Question({})) {
     .join("");
 
   answersList.innerHTML = answersHtml;
-
   nextQuestionBtn.setAttribute("disabled", "");
 }
 
-function getCurrentQuestion() {
-  return questionsList[questionIndex];
-}
-
-function showNextQuestion() {
-  if (!selectedAnswerId) return;
-
-  if (getCurrentQuestion().evalSelectedAnswer()) {
-    correctAnswers.push(selectedAnswerId);
-  }
-
-  questionIndex += 1;
-
-  if (questionIndex === questionsList.length) {
-    questionForm.setAttribute("data-completed", "true");
-    resultMessage.textContent = `You answered ${correctAnswers.length}/${questionsList.length} questions correctly`;
-    return;
-  }
-
-  renderQuestion(questionsList[questionIndex]);
-}
-
 let questionsList = [];
-let questionIndex = 0;
+let index = 0;
 let selectedAnswerId = null;
-const correctAnswers = [];
+let correctCount = 0;
 
-questionForm.addEventListener("submit", () => this.preventDefault());
+questionForm.addEventListener("submit", function () {
+  this.preventDefault();
+});
 
 questionForm.addEventListener("change", function ({ target }) {
   selectedAnswerId = target.value;
-  const currentQuestion = getCurrentQuestion();
+  const currentQuestion = questionsList[index];
 
   currentQuestion.setSelectedAnswer(
     currentQuestion.answers.find(({ id }) => id === selectedAnswerId)
@@ -142,9 +116,23 @@ questionForm.addEventListener("change", function ({ target }) {
   nextQuestionBtn.removeAttribute("disabled");
 });
 
-nextQuestionBtn.addEventListener("click", showNextQuestion);
+nextQuestionBtn.addEventListener("click", function () {
+  if (!selectedAnswerId) return;
+
+  if (questionsList[index].evalSelectedAnswer()) correctCount += 1;
+
+  index += 1;
+
+  if (index === questionsList.length) {
+    questionForm.setAttribute("data-completed", "true");
+    resultMessage.textContent = `You answered ${correctCount}/${questionsList.length} questions correctly`;
+    return;
+  }
+
+  renderQuestion(questionsList[index]);
+});
 
 getOpenTriviaDBQuestions(10).then((data) => {
   questionsList = data;
-  renderQuestion(questionsList[questionIndex]);
+  renderQuestion(data[index]);
 });
