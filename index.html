@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/index.css" />
+    <title>Quiz App</title>
+  </head>
+  <body class="app">
+    <form data-completed="false" id="question-form" class="form card">
+      <h1 id="question-value" class="question"></h1>
+      <ul id="answers-list" class="answers-list">
+        Loading...
+      </ul>
+      <button disabled type="button" id="next-question-btn" class="btn next-question-btn notranslate">Next</button>
+    </form>
+
+    
+    <div class="card result-card">
+      <h1 id="result-message" class="result-message">
+        You answered 1/4 questions correctly
+      </h1>
+      <button onclick="location.reload()" class="btn">Reload</button>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
